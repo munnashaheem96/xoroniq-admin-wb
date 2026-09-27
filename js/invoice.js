@@ -254,6 +254,7 @@ export async function initInvoiceStudio() {
   // Calculate complete taxes and invoice metrics (MRP as Rate, Sale Price as Amount)
   function calculateInvoiceMetrics() {
     const taxMode = invTaxModeSelect ? invTaxModeSelect.value : 'NONE';
+    const isIntrastate = isKeralaAddress(custStateInput?.value || 'Kerala');
     const shipping = Math.max(0, Number(invShippingInput?.value) || 0);
     const extraDiscount = Math.max(0, Number(invDiscountInput?.value) || 0);
 
@@ -306,7 +307,8 @@ export async function initInvoiceStudio() {
       extraDiscount,
       roundOff,
       grandTotal,
-      taxMode
+      taxMode,
+      isIntrastate: Boolean(isIntrastate)
     };
   }
 
@@ -781,11 +783,11 @@ export async function initInvoiceStudio() {
         },
         invoiceNumber: invNumberInput?.value || '',
         taxDetails: {
-          isIntrastate: metrics.isIntrastate,
-          cgst: metrics.totalCgst,
-          sgst: metrics.totalSgst,
-          igst: metrics.totalIgst,
-          taxMode: metrics.taxMode
+          isIntrastate: Boolean(metrics.isIntrastate),
+          cgst: Number(metrics.totalCgst) || 0,
+          sgst: Number(metrics.totalSgst) || 0,
+          igst: Number(metrics.totalIgst) || 0,
+          taxMode: metrics.taxMode || 'NONE'
         },
         orderStatus: invPaymentStatusSelect?.value === 'PAID' ? 'Payment Confirmed' : (invPaymentMethodSelect?.value === 'COD' ? 'Order Placed (COD)' : 'Processing'),
         adminNote: `Invoice ${invNumberInput?.value || ''} generated via Invoice Studio.`

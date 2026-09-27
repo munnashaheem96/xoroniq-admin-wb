@@ -427,13 +427,39 @@ export async function uploadProductImage(file, path) {
 
 // ==========================================================================
 // FIRESTORE: ORDER SERVICES
-// ==========================================================================
+/**
+ * Sanitizes any data payload before sending to Firestore
+ * Recursively converts undefined to null or omits undefined keys to prevent Firestore addDoc errors
+ */
+export function cleanFirestorePayload(obj) {
+  if (obj === undefined) return null;
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof Date || (obj && typeof obj.toMillis === 'function')) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => cleanFirestorePayload(item)).filter(item => item !== undefined);
+  }
+  const clean = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = cleanFirestorePayload(value);
+    }
+  }
+  return clean;
+}
 
 /**
  * Save customer order into Firestore (Supports both Website and External Channels like WhatsApp, Amazon, Phone, etc.)
  */
 export async function createOrder(orderData) {
   try {
+    const rawTaxDetails = orderData.taxDetails ? {
+      isIntrastate: Boolean(orderData.taxDetails.isIntrastate),
+      cgst: Number(orderData.taxDetails.cgst) || 0,
+      sgst: Number(orderData.taxDetails.sgst) || 0,
+      igst: Number(orderData.taxDetails.igst) || 0,
+      taxMode: orderData.taxDetails.taxMode || 'NONE'
+    } : null;
+
     const orderPayload = {
       orderId: orderData.orderId || `XOR-${Math.floor(100000 + Math.random() * 900000)}`,
       source: orderData.source || 'Website', // 'Website', 'WhatsApp', 'Phone / Manual', 'Amazon', 'Flipkart', 'Instagram', 'In-Store', 'Shopify', 'B2B'
@@ -441,7 +467,8 @@ export async function createOrder(orderData) {
       customer: {
         name: orderData.customer?.name || 'Customer',
         email: orderData.customer?.email || '',
-        phone: orderData.customer?.phone || ''
+        phone: orderData.customer?.phone || '',
+        gstin: orderData.customer?.gstin || ''
       },
       shippingAddress: {
         address: orderData.shippingAddress?.address || '',
@@ -467,14 +494,15 @@ export async function createOrder(orderData) {
       trackingUrl: orderData.trackingUrl || (orderData.trackingId ? `https://www.delhivery.com/track/package/${orderData.trackingId}` : ''),
       adminNote: orderData.adminNote || '',
       invoiceNumber: orderData.invoiceNumber || '',
-      taxDetails: orderData.taxDetails || null,
+      taxDetails: rawTaxDetails,
       orderStatus: orderData.orderStatus || (orderData.payment?.method === 'COD' ? 'Order Placed (COD)' : 'Payment Confirmed'),
       createdAt: orderData.createdAt ? orderData.createdAt : serverTimestamp(),
       updatedAt: serverTimestamp()
     };
 
-    const docRef = await addDoc(collection(db, 'orders'), orderPayload);
-    return { id: docRef.id, ...orderPayload };
+    const sanitizedPayload = cleanFirestorePayload(orderPayload);
+    const docRef = await addDoc(collection(db, 'orders'), sanitizedPayload);
+    return { id: docRef.id, ...sanitizedPayload };
   } catch (error) {
     console.error('Error creating order in Firestore:', error);
     throw error;
