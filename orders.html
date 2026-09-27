@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders &amp; Dispatch Hub | XORONIQ Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Manage orders, tracking numbers, customer information, packing slips, and dispatch status in XORONIQ Car Care.">
+  <link rel="icon" type="image/png" href="./images/logo/logo.PNG">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/admin.css">
+
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm 8mm 10mm;
+    }
+    @media print {
+      html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .admin-sidebar,
+      .admin-topbar,
+      .admin-sidebar-footer,
+      .no-print,
+      header,
+      nav,
+      button,
+      .btn,
+      .modal-header,
+      .modal-footer,
+      .modal-backdrop,
+      .admin-main > .admin-content-wrap {
+        display: none !important;
+      }
+      .modal {
+        position: static !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: transparent !important;
+        overflow: visible !important;
+      }
+      .modal-dialog {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      .modal-content {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+      .modal-body {
+        padding: 0 !important;
+      }
+      #printable-invoice-wrapper,
+      #printable-invoice-sheet {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+      }
+      .table {
+        font-size: 10.5px !important;
+      }
+      .table th, .table td {
+        padding: 5px 6px !important;
+      }
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <a href="index.html" class="admin-sidebar-brand">
+        <img src="./images/logo/logo.PNG" alt="XORONIQ" style="height: 32px; object-fit: contain;" onerror="this.style.display='none'">
+        <span class="font-heading fw-bold text-black fs-5 letter-spacing-wide">XORONIQ</span>
+      </a>
+
+      <ul class="admin-sidebar-nav">
+        <li class="admin-nav-item">
+          <a href="index.html"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="products.html"><i class="bi bi-box-seam-fill"></i> Products Catalog</a>
+        </li>
+        <li class="admin-nav-item active">
+          <a href="orders.html"><i class="bi bi-receipt"></i> Orders &amp; Dispatch</a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="invoice.html"><i class="bi bi-receipt-cutoff"></i> Invoice Studio</a>
+        </li>
+        <li class="admin-nav-item mt-4">
+          <a href="https://xoroniq.store" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Live Storefront</a>
+        </li>
+      </ul>
+
+      <div class="admin-sidebar-footer">
+        <button class="btn btn-x-outline btn-sm w-100 admin-logout-btn">
+          <i class="bi bi-box-arrow-left me-1"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-icon d-lg-none" id="toggle-sidebar-btn"><i class="bi bi-list fs-4"></i></button>
+          <div>
+            <h4 class="font-heading text-black fw-bold mb-0">CUSTOMER ORDERS &amp; DISPATCH</h4>
+            <div class="text-muted-custom small">Multi-channel order fulfillment, external sources, tracking &amp; GST invoices</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <button class="btn btn-x-primary btn-sm d-flex align-items-center gap-1 shadow-sm" id="open-new-order-modal-btn" data-bs-toggle="modal" data-bs-target="#newOrderModal" title="Create order from WhatsApp, Phone, Amazon, etc.">
+            <i class="bi bi-plus-circle-fill"></i> + New Order
+          </button>
+          <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="open-import-orders-modal-btn" data-bs-toggle="modal" data-bs-target="#importOrdersModal" title="Import external orders via CSV">
+            <i class="bi bi-file-earmark-arrow-up"></i> Import CSV
+          </button>
+          <a href="invoice.html" class="btn btn-x-outline btn-sm d-none d-md-inline-flex align-items-center gap-1" title="Open Invoice Studio">
+            <i class="bi bi-receipt-cutoff"></i> Invoice Studio
+          </a>
+          <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="refresh-orders-btn" title="Refresh Orders List">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+      </header>
+
+      <div class="admin-content-wrap">
+        
+        <!-- Quick Status Chips / KPI Strip -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip active" data-status="ALL" id="chip-all-orders">
+              <div class="chip-icon bg-light text-dark"><i class="bi bi-collection-fill"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-black fs-6" id="stat-count-all">0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">All Orders</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip" data-status="AWAITING_DISPATCH" id="chip-awaiting-orders">
+              <div class="chip-icon bg-warning bg-opacity-25 text-warning"><i class="bi bi-clock-history"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-warning fs-6" id="stat-count-awaiting">0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">To Dispatch</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip" data-status="Shipped" id="chip-shipped-orders">
+              <div class="chip-icon bg-info bg-opacity-25 text-info"><i class="bi bi-truck"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-accent fs-6" id="stat-count-shipped">0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">In Transit</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip" data-status="Delivered" id="chip-delivered-orders">
+              <div class="chip-icon bg-success bg-opacity-25 text-success"><i class="bi bi-check2-circle"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-success fs-6" id="stat-count-delivered">0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">Delivered</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip" data-status="Cancelled" id="chip-cancelled-orders">
+              <div class="chip-icon bg-danger bg-opacity-25 text-danger"><i class="bi bi-x-circle"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-danger fs-6" id="stat-count-cancelled">0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">Cancelled / Fake</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-md-4 col-xl-2">
+            <div class="order-stat-chip bg-white border border-secondary border-opacity-25" style="cursor: default;">
+              <div class="chip-icon bg-success bg-opacity-10 text-success"><i class="bi bi-currency-rupee"></i></div>
+              <div>
+                <div class="fw-bold font-mono text-dark fs-6 text-truncate" id="stat-total-revenue">₹0</div>
+                <div class="text-muted-custom small" style="font-size: 0.72rem;">Total Revenue</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Controls Bar -->
+        <div class="glass-panel p-3 mb-3">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 260px; max-width: 450px;">
+              <div class="input-group">
+                <span class="input-group-text bg-white border text-dark"><i class="bi bi-search"></i></span>
+                <input type="text" id="admin-orders-search" class="form-control form-control-custom" placeholder="Search Order ID, name, phone, email, AWB, PIN...">
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center flex-wrap gap-2">
+              <!-- Order Source Filter -->
+              <select id="admin-orders-source-filter" class="form-select form-control-custom py-2 px-3 small" style="width: auto;">
+                <option value="ALL">All Sources</option>
+                <option value="Website">Website</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Phone / Manual">Phone / Manual</option>
+                <option value="Amazon">Amazon</option>
+                <option value="Flipkart">Flipkart</option>
+                <option value="Instagram">Instagram</option>
+                <option value="In-Store">In-Store</option>
+                <option value="B2B">B2B / Dealer</option>
+              </select>
+
+              <!-- Status Filter -->
+              <select id="admin-orders-filter" class="form-select form-control-custom py-2 px-3 small" style="width: auto;">
+                <option value="ALL">All Statuses</option>
+                <option value="Payment Confirmed">Payment Confirmed</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Order Placed (COD)">Order Placed (COD)</option>
+              </select>
+
+              <!-- Payment Method Filter -->
+              <select id="admin-orders-payment-filter" class="form-select form-control-custom py-2 px-3 small" style="width: auto;">
+                <option value="ALL">All Payments</option>
+                <option value="RAZORPAY">Prepaid (Razorpay)</option>
+                <option value="COD">Cash on Delivery (COD)</option>
+              </select>
+
+              <!-- Date Filter -->
+              <select id="admin-orders-date-filter" class="form-select form-control-custom py-2 px-3 small" style="width: auto;">
+                <option value="ALL">All Time</option>
+                <option value="TODAY">Today</option>
+                <option value="YESTERDAY">Yesterday</option>
+                <option value="LAST_7_DAYS">Last 7 Days</option>
+                <option value="THIS_MONTH">This Month</option>
+              </select>
+
+              <!-- Region Filter -->
+              <select id="admin-orders-region-filter" class="form-select form-control-custom py-2 px-3 small" style="width: auto;">
+                <option value="ALL">All Regions</option>
+                <option value="KERALA">Kerala Orders</option>
+                <option value="ROI">Rest of India</option>
+              </select>
+
+              <button class="btn btn-x-outline btn-sm" id="reset-filters-btn" title="Reset all filters">
+                <i class="bi bi-arrow-counterclockwise"></i> Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Toolbar: Customers Directory, CSV, Google Sheets -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between pt-3 mt-3 border-top border-secondary border-opacity-25 gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-white border text-dark fw-bold" id="admin-orders-count">0 Orders</span>
+              <span class="badge bg-surface-custom text-muted-custom border" id="admin-orders-active-filter-badge">Showing: All Orders</span>
+            </div>
+            <div class="d-flex align-items-center flex-wrap gap-2">
+              <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="open-customer-directory-btn" data-bs-toggle="modal" data-bs-target="#customerDirectoryModal" title="View Customer Contacts & Lifetime Value">
+                <i class="bi bi-people-fill text-accent"></i> Customer Directory
+              </button>
+              <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="export-orders-csv-btn" title="Download Excel/CSV Spreadsheet">
+                <i class="bi bi-file-earmark-spreadsheet text-success"></i> Export CSV
+              </button>
+              <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#channelsModal" title="How to hook external channels & webhooks">
+                <i class="bi bi-diagram-3 text-info"></i> Channel Integrations
+              </button>
+              <button class="btn btn-x-primary btn-sm d-flex align-items-center gap-1" id="open-sheets-modal-btn" data-bs-toggle="modal" data-bs-target="#sheetsModal" title="Configure Google Sheets Webhook Sync">
+                <i class="bi bi-cloud-arrow-up"></i> Google Sheets Sync
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bulk Action Toolbar (Displayed dynamically when orders are selected) -->
+        <div id="bulk-actions-toolbar" class="bulk-actions-toolbar" style="display: none;">
+          <div class="d-flex align-items-center gap-3">
+            <div class="form-check m-0">
+              <input class="form-check-input" type="checkbox" id="bulk-toolbar-toggle-all">
+            </div>
+            <span class="fw-bold"><span id="bulk-selected-count">0</span> orders selected</span>
+          </div>
+
+          <div class="d-flex align-items-center flex-wrap gap-2">
+            <button class="btn btn-danger btn-sm fw-bold d-flex align-items-center gap-1 shadow-sm px-3" id="bulk-delete-btn" title="Permanently delete selected orders">
+              <i class="bi bi-trash3-fill"></i> Delete Selected
+            </button>
+
+            <div class="input-group input-group-sm" style="width: auto;">
+              <span class="input-group-text bg-secondary border-0 text-white">Status:</span>
+              <select id="bulk-status-select" class="form-select form-select-sm bg-dark text-white border-0">
+                <option value="">Change Status to...</option>
+                <option value="Processing">Processing</option>
+                <option value="Shipped">Shipped</option>
+                <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+              <button class="btn btn-light btn-sm fw-bold" id="apply-bulk-status-btn">Apply</button>
+            </div>
+
+            <button class="btn btn-outline-light btn-sm" id="bulk-export-btn" title="Export only selected orders">
+              <i class="bi bi-download me-1"></i> Export Selected
+            </button>
+          </div>
+        </div>
+
+        <!-- Orders Table Card -->
+        <div class="admin-card">
+          <div class="table-responsive">
+            <table class="table-custom-dark mb-0">
+              <thead>
+                <tr>
+                  <th style="width: 36px;">
+                    <input type="checkbox" class="form-check-input form-check-input-custom" id="select-all-orders" title="Select all visible orders">
+                  </th>
+                  <th>Order ID</th>
+                  <th>Source</th>
+                  <th>Customer</th>
+                  <th>Date &amp; City</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Email</th>
+                  <th>Delhivery AWB</th>
+                  <th class="th-actions text-end" style="min-width: 250px;">Actions &amp; Delete</th>
+                </tr>
+              </thead>
+              <tbody id="admin-orders-table-body">
+                <!-- Dynamically populated by js/orders.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Delete Confirmation Modal (Single & Bulk) -->
+  <div class="modal fade" id="deleteOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-danger border-opacity-25 bg-danger bg-opacity-10">
+          <h5 class="modal-title font-heading text-danger fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill fs-4"></i> CONFIRM ORDER DELETION
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <p class="text-dark mb-3" id="delete-modal-message">
+            Are you sure you want to permanently delete this order?
+          </p>
+          <div class="p-3 bg-surface-custom rounded border border-secondary border-opacity-25 small mb-3" id="delete-modal-details">
+            <!-- Dynamic order details filled here -->
+          </div>
+          <div class="alert alert-warning border d-flex align-items-center gap-2 py-2 px-3 small mb-0">
+            <i class="bi bi-shield-exclamation text-dark fs-5"></i>
+            <span>This action permanently purges the order record from the Firestore database and cannot be undone.</span>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger btn-sm fw-bold px-3" id="confirm-delete-order-btn">
+            <i class="bi bi-trash3-fill me-1"></i> Delete Permanently
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Invoice / Packing Slip Modal -->
+  <div class="modal fade" id="invoiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25 no-print">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-printer text-accent fs-4"></i> PACKING SLIP &amp; INVOICE
+          </h5>
+          <div class="d-flex align-items-center gap-2">
+            <a href="invoice.html" id="modal-open-in-studio-btn" class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" target="_blank" title="Customize in Invoice Studio">
+              <i class="bi bi-pencil-square"></i> Open in Studio
+            </a>
+            <button type="button" class="btn btn-x-primary btn-sm" id="trigger-print-btn">
+              <i class="bi bi-printer-fill me-1"></i> Print / Save PDF
+            </button>
+            <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+          </div>
+        </div>
+        <div class="modal-body p-0" id="printable-invoice-wrapper">
+          <!-- Dynamic invoice template filled here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Directory Modal -->
+  <div class="modal fade" id="customerDirectoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill text-accent fs-4"></i> CUSTOMER DIRECTORY &amp; CONCIERGE
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+            <div class="input-group" style="max-width: 380px;">
+              <span class="input-group-text bg-white border text-dark"><i class="bi bi-search"></i></span>
+              <input type="text" id="customer-search-input" class="form-control form-control-custom" placeholder="Search customer by name, phone, or city...">
+            </div>
+            <span class="badge bg-white border text-dark" id="customer-directory-count">0 Unique Customers</span>
+          </div>
+
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <table class="table-custom-dark w-100">
+              <thead>
+                <tr>
+                  <th>Customer Name</th>
+                  <th>Phone / WhatsApp</th>
+                  <th>Email</th>
+                  <th>Location</th>
+                  <th>Total Orders</th>
+                  <th>Lifetime Spend</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="customer-directory-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delhivery Tracking / AWB Modal -->
+  <div class="modal fade" id="trackingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-truck text-accent fs-4"></i> DELHIVERY DISPATCH DETAILS
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="delhivery-tracking-form">
+            <input type="hidden" id="modal-tracking-order-id">
+            <div class="mb-3">
+              <label class="form-label font-heading text-black small fw-bold">ORDER ID</label>
+              <input type="text" id="modal-tracking-order-display" class="form-control form-control-custom bg-light font-mono fw-bold" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label font-heading text-black small fw-bold">COURIER PARTNER</label>
+              <input type="text" class="form-control form-control-custom bg-light" value="Delhivery Express" readonly>
+            </div>
+            <div class="mb-3">
+              <label class="form-label font-heading text-black small fw-bold">DELHIVERY AWB / TRACKING NUMBER *</label>
+              <input type="text" id="modal-tracking-awb-input" class="form-control form-control-custom font-mono" placeholder="e.g. 143829471928" required>
+              <div class="text-muted-custom small mt-1">Copy & paste from Delhivery merchant panel or shipping label barcode.</div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-x-primary btn-sm" id="modal-tracking-save-btn">
+                <i class="bi bi-check2-circle me-1"></i> Save & Mark Shipped
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Sheets Integration Modal -->
+  <div class="modal fade" id="sheetsModal" tabindex="-1" aria-labelledby="sheetsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2" id="sheetsModalLabel">
+            <i class="bi bi-file-earmark-spreadsheet text-success fs-4"></i> GOOGLE SHEETS LIVE ORDER SYNC
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="alert alert-light border d-flex align-items-start gap-3 mb-4">
+            <i class="bi bi-info-circle-fill text-accent fs-4 mt-1"></i>
+            <div class="small">
+              <strong>Automated Google Sheets Recording:</strong> Every order placed on XORONIQ is automatically pushed in real-time to your Google Spreadsheet via Google Apps Script.
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label text-black small fw-bold font-heading">GOOGLE APPS SCRIPT WEBHOOK URL</label>
+            <div class="input-group">
+              <input type="url" id="sheets-webhook-url-input" class="form-control form-control-custom font-mono small" placeholder="https://script.google.com/macros/s/.../exec">
+              <button class="btn btn-x-primary btn-sm px-3" id="save-sheets-url-btn">
+                <i class="bi bi-check2-circle me-1"></i> Save URL
+              </button>
+            </div>
+            <div class="form-text small mt-1" id="sheets-url-status-text">
+              <span class="badge bg-secondary">Checking configuration...</span>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 mb-4">
+            <button class="btn btn-x-outline btn-sm" id="test-sheets-connection-btn">
+              <i class="bi bi-lightning-charge me-1"></i> Send Test Row
+            </button>
+            <button class="btn btn-x-primary btn-sm" id="sync-all-orders-btn">
+              <i class="bi bi-cloud-arrow-up me-1"></i> Sync All Existing Orders to Sheets
+            </button>
+            <button class="btn btn-x-outline btn-sm" id="download-orders-csv-modal-btn">
+              <i class="bi bi-download me-1"></i> Download CSV File
+            </button>
+          </div>
+
+          <div id="sheets-action-feedback" class="small mb-4" style="display:none;"></div>
+
+          <div class="p-3 bg-surface-custom rounded border border-secondary border-opacity-25 small">
+            <h6 class="font-heading fw-bold text-black mb-2 d-flex align-items-center gap-2">
+              <i class="bi bi-question-circle text-accent"></i> How to set up your Google Sheet in 2 minutes:
+            </h6>
+            <ol class="ps-3 mb-2 text-muted-custom" style="line-height: 1.6;">
+              <li>Create a new spreadsheet at <a href="https://sheets.new" target="_blank" class="text-accent fw-bold text-decoration-underline">sheets.new</a> named <strong>"XORONIQ Orders"</strong>.</li>
+              <li>Click <strong>Extensions</strong> → <strong>Apps Script</strong> in the top menu.</li>
+              <li>Copy &amp; paste the script from <code class="text-dark bg-white px-1 border rounded">google-apps-script.js</code> (located in this website repo).</li>
+              <li>Click <strong>Deploy</strong> → <strong>New deployment</strong> → Select <strong>Web app</strong>. Set <em>"Who has access"</em> to <strong>"Anyone"</strong> and click <strong>Deploy</strong>.</li>
+              <li>Copy the Web App URL and paste it above!</li>
+            </ol>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create External / Multi-Channel Order Modal -->
+  <div class="modal fade" id="newOrderModal" tabindex="-1" aria-labelledby="newOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2" id="newOrderModalLabel">
+            <i class="bi bi-plus-circle-fill text-accent fs-4"></i> RECORD ORDER FROM EXTERNAL SOURCE
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="external-order-form">
+            <!-- Channel & Reference -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">1. SALES CHANNEL &amp; REFERENCE</div>
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Order Source *</label>
+                  <select id="modal-order-source" class="form-select form-select-sm form-control-custom" required>
+                    <option value="WhatsApp" selected>WhatsApp Concierge</option>
+                    <option value="Phone / Manual">Phone / Manual Order</option>
+                    <option value="In-Store">In-Store / Direct Walk-in</option>
+                    <option value="Amazon">Amazon Marketplace</option>
+                    <option value="Flipkart">Flipkart</option>
+                    <option value="Instagram">Instagram Concierge</option>
+                    <option value="B2B">B2B / Wholesale Dealer</option>
+                    <option value="Website">Website</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">External Order / Reference ID</label>
+                  <input type="text" id="modal-external-ref" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. AMZ-402-91823 or WA-CONV-102">
+                </div>
+              </div>
+            </div>
+
+            <!-- Customer Details -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">2. CUSTOMER &amp; SHIPPING RECIPIENT</div>
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Customer Name *</label>
+                  <input type="text" id="modal-cust-name" class="form-control form-control-sm form-control-custom" placeholder="Full Name" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Phone / WhatsApp *</label>
+                  <input type="tel" id="modal-cust-phone" class="form-control form-control-sm form-control-custom font-mono" placeholder="10-digit mobile number" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Email Address</label>
+                  <input type="email" id="modal-cust-email" class="form-control form-control-sm form-control-custom" placeholder="customer@domain.com">
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Customer Trade / GST ID (Optional)</label>
+                  <input type="text" id="modal-cust-gstin" class="form-control form-control-sm form-control-custom font-mono text-uppercase" placeholder="Optional">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-dark mb-1">Street Address *</label>
+                  <input type="text" id="modal-cust-address" class="form-control form-control-sm form-control-custom" placeholder="House / Flat / Street / Landmark" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">City *</label>
+                  <input type="text" id="modal-cust-city" class="form-control form-control-sm form-control-custom" placeholder="City" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">State *</label>
+                  <input type="text" id="modal-cust-state" class="form-control form-control-sm form-control-custom" value="Kerala" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">PIN Code *</label>
+                  <input type="text" id="modal-cust-pincode" class="form-control form-control-sm form-control-custom font-mono" placeholder="676306" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Items -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div class="fw-bold font-heading text-dark small text-uppercase">3. ORDERED PRODUCTS</div>
+                <div class="d-flex gap-2">
+                  <select id="modal-product-picker" class="form-select form-select-sm" style="max-width: 220px;">
+                    <option value="">+ Add Product from Catalog...</option>
+                    <option value="xoroniq-essential-kit">XORONIQ Essential Kit (₹1,199)</option>
+                    <option value="shampoo-473ml">Ultra Foam Shampoo 473ml (₹449)</option>
+                    <option value="towel-1200gsm">1200 GSM Heavy Plush Towel (₹399)</option>
+                    <option value="towel-350gsm">350 GSM Buffing Towel (₹199)</option>
+                    <option value="wash-mitt">Premium Wash Mitt (₹249)</option>
+                    <option value="foam-sprayer">Pump Foam Sprayer (₹499)</option>
+                    <option value="custom">Custom Item...</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="modal-order-items-list" class="mb-2">
+                <!-- Dynamically populated rows -->
+              </div>
+            </div>
+
+            <!-- Financials & Fulfillment -->
+            <div class="p-3 bg-light rounded border mb-3">
+              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">4. TOTALS, PAYMENT &amp; DISPATCH</div>
+              <div class="row g-2">
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">Delivery Fee (₹)</label>
+                  <input type="number" id="modal-order-shipping" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">Discount (₹)</label>
+                  <input type="number" id="modal-order-discount" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">Order Grand Total</label>
+                  <div class="form-control form-control-sm bg-white font-mono fw-bold text-accent" id="modal-order-total-display">₹1,199</div>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Payment Method *</label>
+                  <select id="modal-order-payment-method" class="form-select form-select-sm form-control-custom">
+                    <option value="UPI" selected>UPI / Google Pay / PhonePe</option>
+                    <option value="COD">Cash on Delivery (COD)</option>
+                    <option value="RAZORPAY">Razorpay Online</option>
+                    <option value="CASH">Direct Cash</option>
+                    <option value="BANK_TRANSFER">Bank NEFT / RTGS</option>
+                    <option value="MARKETPLACE">Amazon / Flipkart Settlement</option>
+                  </select>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Order Fulfillment Status *</label>
+                  <select id="modal-order-status" class="form-select form-select-sm form-control-custom">
+                    <option value="Payment Confirmed" selected>Payment Confirmed (Ready to Pack)</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Shipped">Shipped</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Order Placed (COD)">Order Placed (COD)</option>
+                  </select>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Courier Partner</label>
+                  <input type="text" id="modal-order-courier" class="form-control form-control-sm form-control-custom" value="Delhivery Express">
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">AWB / Tracking Number (Optional)</label>
+                  <input type="text" id="modal-order-awb" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. 143829471928">
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-dark mb-1">Admin Internal Note</label>
+                  <input type="text" id="modal-order-note" class="form-control form-control-sm form-control-custom" placeholder="e.g. Customer ordered via WhatsApp chat. Priority shipping requested.">
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+              <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-x-primary btn-sm px-3" id="save-external-order-btn">
+                <i class="bi bi-check2-circle me-1"></i> Save Order
+              </button>
+              <button type="button" class="btn btn-dark btn-sm px-3" id="save-and-invoice-btn">
+                <i class="bi bi-receipt-cutoff me-1"></i> Save &amp; Open Tax Invoice
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Import Orders (CSV) Modal -->
+  <div class="modal fade" id="importOrdersModal" tabindex="-1" aria-labelledby="importOrdersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2" id="importOrdersModalLabel">
+            <i class="bi bi-file-earmark-arrow-up text-success fs-4"></i> BULK IMPORT ORDERS FROM CSV / SPREADSHEET
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="alert alert-light border d-flex align-items-start gap-3 mb-3">
+            <i class="bi bi-info-circle text-accent fs-4 mt-1"></i>
+            <div class="small">
+              <strong>Import orders from external sales channels:</strong> Upload or paste orders from Amazon, Flipkart, Shopify, WhatsApp leads or offline spreadsheets. All records are automatically validated and inserted into the XORONIQ order database.
+            </div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-semibold text-dark mb-1">Default Channel / Source for Import *</label>
+              <select id="csv-default-source" class="form-select form-select-sm form-control-custom">
+                <option value="Amazon">Amazon Marketplace</option>
+                <option value="Flipkart">Flipkart</option>
+                <option value="WhatsApp" selected>WhatsApp Orders</option>
+                <option value="Phone / Manual">Phone / Offline Ledger</option>
+                <option value="Shopify">Shopify</option>
+                <option value="B2B">B2B Wholesale</option>
+              </select>
+            </div>
+            <div class="col-12 col-sm-6 d-flex align-items-end">
+              <button type="button" class="btn btn-x-outline btn-sm w-100" id="download-csv-sample-btn">
+                <i class="bi bi-download me-1"></i> Download Sample CSV Template
+              </button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark mb-1">Choose CSV File</label>
+            <input type="file" id="csv-file-input" class="form-control form-control-sm form-control-custom" accept=".csv,text/csv">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold text-dark mb-1">Or Paste CSV Text Directly:</label>
+            <textarea id="csv-paste-textarea" class="form-control form-control-sm form-control-custom font-mono" rows="4" placeholder="orderId,customerName,phone,email,address,city,state,pincode,item,quantity,total,paymentMethod,status&#10;AMZ-991,Rahul V,9876543210,rahul@mail.com,Flat 4B Link Rd,Kochi,Kerala,682001,XORONIQ Essential Kit,1,1199,Prepaid,Processing"></textarea>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <button type="button" class="btn btn-x-outline btn-sm" id="parse-csv-btn">
+              <i class="bi bi-search me-1"></i> Parse &amp; Preview Rows
+            </button>
+            <span class="small text-muted font-mono" id="csv-parsed-count-badge">0 rows parsed</span>
+          </div>
+
+          <div id="csv-preview-container" class="table-responsive border rounded mb-3" style="max-height: 220px; display: none;">
+            <table class="table table-sm table-striped mb-0 small">
+              <thead class="table-light">
+                <tr>
+                  <th>Order ID</th>
+                  <th>Source</th>
+                  <th>Customer</th>
+                  <th>City</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="csv-preview-tbody">
+                <!-- Preview items -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="csv-import-status" class="small mb-2" style="display: none;"></div>
+
+          <div class="d-flex justify-content-end gap-2 pt-2 border-top">
+            <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-x-primary btn-sm px-4" id="confirm-import-csv-btn" disabled>
+              <i class="bi bi-cloud-arrow-up-fill me-1"></i> Import Orders Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Channel Integrations & Webhooks Modal -->
+  <div class="modal fade" id="channelsModal" tabindex="-1" aria-labelledby="channelsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2" id="channelsModalLabel">
+            <i class="bi bi-diagram-3 text-info fs-4"></i> CONNECT EXTERNAL SALES CHANNELS
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="accordion accordion-flush" id="channelsAccordion">
+            <!-- 1. WhatsApp -->
+            <div class="accordion-item bg-transparent">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#chan-wa">
+                  <i class="bi bi-whatsapp text-success fs-5 me-2"></i> 1. WhatsApp Business &amp; Direct Ordering
+                </button>
+              </h2>
+              <div id="chan-wa" class="accordion-collapse collapse show">
+                <div class="accordion-body small text-muted-custom">
+                  Use the <strong>+ New Order</strong> button above to manually record WhatsApp orders, or generate an instant invoice in <strong>Invoice Studio</strong> and send the PDF directly to the customer. All customer phone numbers include instant WhatsApp messaging triggers throughout the admin panel.
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Amazon & Flipkart -->
+            <div class="accordion-item bg-transparent">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#chan-amz">
+                  <i class="bi bi-box-seam text-warning fs-5 me-2"></i> 2. Amazon &amp; Flipkart Marketplaces
+                </button>
+              </h2>
+              <div id="chan-amz" class="accordion-collapse collapse">
+                <div class="accordion-body small text-muted-custom">
+                  Export your pending orders report from Amazon Seller Central (MTR / Order Report) or Flipkart Seller Hub as CSV. Click <strong>Import CSV</strong> on the top bar to batch import hundreds of marketplace orders with tracking AWB and SKU matching in seconds!
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Google Sheets Live Sync -->
+            <div class="accordion-item bg-transparent">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#chan-sheets">
+                  <i class="bi bi-file-earmark-spreadsheet text-success fs-5 me-2"></i> 3. Google Sheets Automation &amp; Zapier Webhook
+                </button>
+              </h2>
+              <div id="chan-sheets" class="accordion-collapse collapse">
+                <div class="accordion-body small text-muted-custom">
+                  Every order created manually or from the storefront is automatically dispatched to your connected Google Sheet webhook in real time. You can link Zapier, Pabbly, or Make to your Google Sheet to trigger courier pickups on Shiprocket/Delhivery or send SMS notifications automatically.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+  <script type="module">
+    import { requireAdminAuth, initAdminLogout } from './js/auth.js';
+    import { initAdminOrdersPage } from './js/orders.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      requireAdminAuth();
+      initAdminLogout();
+      initAdminOrdersPage();
+
+      const toggleBtn = document.getElementById('toggle-sidebar-btn');
+      const sidebar = document.getElementById('adminSidebar');
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('show');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

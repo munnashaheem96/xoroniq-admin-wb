@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Authentication | XORONIQ Car Care</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Secure administrative login portal for XORONIQ Car Care.">
+  <link rel="icon" type="image/png" href="./images/logo/logo.PNG">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/admin.css">
+</head>
+<body class="admin-body d-flex align-items-center justify-content-center min-vh-100 p-3">
+
+  <div class="glass-panel-heavy p-4 p-md-5" style="max-width: 440px; width: 100%;">
+    <div class="text-center mb-4">
+      <img src="./images/logo/logo.PNG" alt="XORONIQ" style="height: 45px; object-fit: contain;" class="mb-3" onerror="this.style.display='none'">
+      <h3 class="font-heading text-black fw-bold mb-1">ADMIN PORTAL</h3>
+      <p class="text-muted-custom small letter-spacing-wide">SECURE ACCESS • FIREBASE AUTH</p>
+    </div>
+
+    <div id="admin-login-error-banner" class="alert alert-danger py-2 small mb-3 text-center" style="display:none;">
+      <i class="bi bi-shield-x me-1"></i> Access Denied: You do not have administrative clearance.
+    </div>
+
+    <form id="admin-login-form">
+      <div class="mb-3">
+        <label class="form-label text-black small fw-bold font-heading">ADMIN EMAIL</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border text-dark"><i class="bi bi-envelope"></i></span>
+          <input type="email" id="admin-email" class="form-control form-control-custom" required placeholder="admin@xoroniq.com">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="form-label text-black small fw-bold font-heading mb-0">PASSWORD</label>
+          <a href="#" id="admin-forgot-btn" class="text-accent small text-decoration-none font-heading" style="font-size: 0.75rem;">Forgot?</a>
+        </div>
+        <div class="input-group">
+          <span class="input-group-text bg-white border text-dark"><i class="bi bi-key"></i></span>
+          <input type="password" id="admin-password" class="form-control form-control-custom" required placeholder="••••••••••••">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-x-primary w-100 py-3 mb-3" id="admin-login-btn">
+        SIGN IN TO DASHBOARD <i class="bi bi-arrow-right ms-2"></i>
+      </button>
+
+      <div class="text-center">
+        <a href="https://xoroniq.store" class="text-muted-custom text-decoration-none small">
+          <i class="bi bi-arrow-left me-1"></i> Return to Customer Storefront
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="./js/main.js"></script>
+  <script type="module">
+    import { initAdminLoginPage } from './js/auth.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdminLoginPage();
+    });
+  </script>
+</body>
+</html>

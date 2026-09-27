@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Studio &amp; Billing Hub | XORONIQ Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="Generate GST tax invoices, commercial receipts, and dispatch slips for XORONIQ Car Care.">
+  <link rel="icon" type="image/png" href="./images/logo/logo.PNG">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/animations.css">
+  <link rel="stylesheet" href="./css/admin.css">
+
+  <style>
+    /* Invoice Studio Dedicated Styles */
+    .invoice-builder-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 1200px) {
+      .invoice-builder-grid {
+        grid-template-columns: 520px 1fr;
+        align-items: start;
+      }
+    }
+    @media (min-width: 1440px) {
+      .invoice-builder-grid {
+        grid-template-columns: 580px 1fr;
+      }
+    }
+
+    .preview-sticky-wrap {
+      position: sticky;
+      top: 90px;
+    }
+
+    /* Crisp A4 Print Sheet Container */
+    .gst-invoice-sheet {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      padding: 2rem;
+      font-size: 0.82rem;
+      line-height: 1.45;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .gst-header-title {
+      font-family: var(--x-font-heading, sans-serif);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #090d16;
+    }
+
+    .gst-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.75rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.8rem;
+    }
+    .gst-table th, .gst-table td {
+      border: 1px solid #94a3b8;
+      padding: 6px 8px;
+      vertical-align: middle;
+    }
+    .gst-table th {
+      background-color: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+    }
+    .gst-table-borderless td {
+      border: none !important;
+      padding: 2px 4px;
+    }
+
+    .invoice-badge-type {
+      background: #090d16;
+      color: #ffffff;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .signatory-box {
+      border: 1px dashed #94a3b8;
+      height: 60px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+
+    /* =====================================================================
+       PRECISE A4 PDF / BROWSER PRINT STYLESHEET
+       Eliminates awkward blank pages, misaligned margins, and clipping
+       ===================================================================== */
+    @page {
+      size: A4 portrait;
+      margin: 8mm 10mm 8mm 10mm;
+    }
+
+    @media print {
+      html, body, .admin-body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Completely hide UI chrome */
+      .admin-sidebar,
+      .admin-topbar,
+      .admin-sidebar-footer,
+      .editor-controls-col,
+      .preview-col > .preview-sticky-wrap > .d-flex,
+      .modal,
+      .modal-backdrop,
+      .no-print,
+      #toggle-sidebar-btn,
+      button {
+        display: none !important;
+      }
+
+      /* Flatten wrappers so they don't force columns, margins, or heights */
+      .admin-layout,
+      .admin-main,
+      .admin-content-wrap,
+      .invoice-builder-grid,
+      .preview-col,
+      .preview-sticky-wrap {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        margin-left: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+        overflow: visible !important;
+      }
+
+      /* Print Sheet resets */
+      #printable-gst-invoice {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+
+      /* Tables in print */
+      .gst-table {
+        width: 100% !important;
+        margin-top: 6px !important;
+        margin-bottom: 6px !important;
+        border-collapse: collapse !important;
+      }
+      .gst-table th {
+        background-color: #f1f5f9 !important;
+        color: #000000 !important;
+        border: 1px solid #475569 !important;
+        padding: 4px 6px !important;
+        font-size: 9.5px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .gst-table td {
+        border: 1px solid #94a3b8 !important;
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+        color: #000000 !important;
+      }
+      .gst-table tfoot td {
+        border: 1px solid #475569 !important;
+        font-weight: 700 !important;
+        padding: 4px 6px !important;
+      }
+
+      /* Cards & Grids in print */
+      .bg-light {
+        background-color: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .invoice-badge-type {
+        background: #000000 !important;
+        color: #ffffff !important;
+        padding: 3px 8px !important;
+        font-size: 9px !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .signatory-box {
+        border: 1px dashed #64748b !important;
+        height: 48px !important;
+        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .row {
+        margin-left: -4px !important;
+        margin-right: -4px !important;
+      }
+      .col-6, .col-7, .col-5, .col-8, .col-4 {
+        padding-left: 4px !important;
+        padding-right: 4px !important;
+      }
+
+      /* Compact margins to ensure single A4 page fit */
+      .mb-3 { margin-bottom: 6px !important; }
+      .mb-2 { margin-bottom: 4px !important; }
+      .pb-3 { padding-bottom: 5px !important; }
+      .pt-2 { padding-top: 4px !important; }
+    }
+  </style>
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <a href="index.html" class="admin-sidebar-brand">
+        <img src="./images/logo/logo.PNG" alt="XORONIQ" style="height: 32px; object-fit: contain;" onerror="this.style.display='none'">
+        <span class="font-heading fw-bold text-black fs-5 letter-spacing-wide">XORONIQ</span>
+      </a>
+
+      <ul class="admin-sidebar-nav">
+        <li class="admin-nav-item">
+          <a href="index.html"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="products.html"><i class="bi bi-box-seam-fill"></i> Products Catalog</a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="orders.html"><i class="bi bi-receipt"></i> Orders &amp; Dispatch</a>
+        </li>
+        <li class="admin-nav-item active">
+          <a href="invoice.html"><i class="bi bi-receipt-cutoff"></i> Invoice Studio</a>
+        </li>
+        <li class="admin-nav-item mt-4">
+          <a href="https://xoroniq.store" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Live Storefront</a>
+        </li>
+      </ul>
+
+      <div class="admin-sidebar-footer">
+        <button class="btn btn-x-outline btn-sm w-100 admin-logout-btn">
+          <i class="bi bi-box-arrow-left me-1"></i> Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-icon d-lg-none" id="toggle-sidebar-btn"><i class="bi bi-list fs-4"></i></button>
+          <div>
+            <h4 class="font-heading text-black fw-bold mb-0">INVOICE &amp; BILLING STUDIO</h4>
+            <div class="text-muted-custom small">Create, customize &amp; print commercial bills, retail invoices &amp; dispatch slips</div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+          <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="load-from-order-btn" data-bs-toggle="modal" data-bs-target="#loadOrderModal" title="Load data from an existing order">
+            <i class="bi bi-box-arrow-in-down-right"></i> Load Order
+          </button>
+          <button class="btn btn-x-outline btn-sm d-flex align-items-center gap-1" id="new-invoice-btn" title="Reset to blank invoice">
+            <i class="bi bi-file-earmark-plus"></i> Reset
+          </button>
+          <button class="btn btn-x-primary btn-sm d-flex align-items-center gap-1" id="print-invoice-btn">
+            <i class="bi bi-printer-fill"></i> Print / PDF
+          </button>
+        </div>
+      </header>
+
+      <div class="admin-content-wrap">
+        <div class="invoice-builder-grid">
+          
+          <!-- LEFT: Interactive Form Controls -->
+          <div class="editor-controls-col">
+            
+            <!-- Step 1: Channel & Invoice Number -->
+            <div class="admin-card p-3 mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <span class="fw-bold font-heading text-black small">
+                  <i class="bi bi-gear-wide-connected text-accent me-1"></i> 1. INVOICE META &amp; CHANNEL
+                </span>
+                <span class="badge bg-light text-dark border font-mono small" id="editor-status-badge">Draft</span>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Invoice Number *</label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" id="inv-number" class="form-control form-control-custom font-mono fw-bold" value="XOR-INV-2026-0001">
+                    <button class="btn btn-outline-secondary" type="button" id="generate-inv-no-btn" title="Generate New Number">
+                      <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Order Source / Channel *</label>
+                  <select id="inv-source" class="form-select form-select-sm form-control-custom">
+                    <option value="Website">Website (Direct)</option>
+                    <option value="WhatsApp" selected>WhatsApp Order</option>
+                    <option value="Phone / Manual">Phone / Manual</option>
+                    <option value="In-Store">In-Store / Direct Walk-in</option>
+                    <option value="Amazon">Amazon Marketplace</option>
+                    <option value="Flipkart">Flipkart</option>
+                    <option value="Instagram">Instagram Concierge</option>
+                    <option value="B2B">B2B / Wholesale Dealer</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Invoice Date</label>
+                  <input type="date" id="inv-date" class="form-control form-control-sm form-control-custom">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">External Ref / PO Number</label>
+                  <input type="text" id="inv-ref-number" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. AMZ-402-91829 or WA-091">
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Customer / Buyer Details -->
+            <div class="admin-card p-3 mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <span class="fw-bold font-heading text-black small">
+                  <i class="bi bi-person-fill text-accent me-1"></i> 2. CUSTOMER / BUYER DETAILS
+                </span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-accent text-decoration-none" id="quick-fill-customer-btn">
+                  <i class="bi bi-people me-1"></i>Pick Customer
+                </button>
+              </div>
+
+              <div class="row g-2">
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Customer / Trade Name *</label>
+                  <input type="text" id="cust-name" class="form-control form-control-sm form-control-custom" placeholder="e.g. Rahul Sharma" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Phone / WhatsApp *</label>
+                  <input type="tel" id="cust-phone" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. 9876543210" required>
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Email Address</label>
+                  <input type="email" id="cust-email" class="form-control form-control-sm form-control-custom" placeholder="customer@domain.com">
+                </div>
+                <div class="col-12 col-sm-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Customer Trade / GST ID (Optional)</label>
+                  <input type="text" id="cust-gstin" class="form-control form-control-sm form-control-custom font-mono text-uppercase" placeholder="Optional">
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-dark mb-1">Delivery Address *</label>
+                  <input type="text" id="cust-address" class="form-control form-control-sm form-control-custom" placeholder="Flat / House / Street Name" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">City *</label>
+                  <input type="text" id="cust-city" class="form-control form-control-sm form-control-custom" placeholder="City / District" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">State *</label>
+                  <input type="text" id="cust-state" class="form-control form-control-sm form-control-custom" value="Kerala" required>
+                </div>
+                <div class="col-4">
+                  <label class="form-label small fw-semibold text-dark mb-1">PIN Code *</label>
+                  <input type="text" id="cust-pincode" class="form-control form-control-sm form-control-custom font-mono" placeholder="676306" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3: Product Line Items -->
+            <div class="admin-card p-3 mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <span class="fw-bold font-heading text-black small">
+                  <i class="bi bi-box-seam-fill text-accent me-1"></i> 3. PRODUCT LINE ITEMS
+                </span>
+                <div class="d-flex gap-2">
+                  <select id="catalog-quick-select" class="form-select form-select-sm" style="max-width: 180px;">
+                    <option value="">+ Add From Catalog...</option>
+                    <option value="xoroniq-essential-kit">XORONIQ Essential Kit (₹1,199)</option>
+                    <option value="shampoo-473ml">Ultra Foam Shampoo 473ml (₹449)</option>
+                    <option value="towel-1200gsm">1200 GSM Heavy Plush Towel (₹399)</option>
+                    <option value="towel-350gsm">350 GSM Buffing Towel (₹199)</option>
+                    <option value="wash-mitt">Premium Wash Mitt (₹249)</option>
+                    <option value="foam-sprayer">Pump Foam Sprayer (₹499)</option>
+                    <option value="custom">Custom Item...</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="line-items-container">
+                <!-- Dynamically populated line item rows -->
+              </div>
+
+              <button type="button" class="btn btn-x-outline btn-sm w-100 mt-2" id="add-custom-row-btn">
+                <i class="bi bi-plus-circle me-1"></i> Add Custom Line Item
+              </button>
+            </div>
+
+            <!-- Step 4: Charges, Discounts & Payment -->
+            <div class="admin-card p-3 mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <span class="fw-bold font-heading text-black small">
+                  <i class="bi bi-calculator-fill text-accent me-1"></i> 4. CHARGES &amp; PAYMENT
+                </span>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 small">Non-GST Active</span>
+              </div>
+
+              <div class="row g-2 mb-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Invoice Billing Type</label>
+                  <select id="inv-tax-mode" class="form-select form-select-sm form-control-custom">
+                    <option value="NONE" selected>Non-GST / Retail Bill of Supply (0%)</option>
+                    <option value="INCLUSIVE">Tax Inclusive (Price includes Tax)</option>
+                    <option value="EXCLUSIVE">Tax Added to Rate (Standard GST)</option>
+                  </select>
+                </div>
+                <div class="col-12 col-md-6" id="gst-type-col" style="display: none;">
+                  <label class="form-label small fw-semibold text-dark mb-1">Tax Region Auto-Detection</label>
+                  <select id="inv-gst-type" class="form-select form-select-sm form-control-custom">
+                    <option value="AUTO">Auto Detect (CGST+SGST or IGST)</option>
+                    <option value="INTRA">Intrastate Kerala (CGST 9% + SGST 9%)</option>
+                    <option value="INTER">Interstate ROI (IGST 18%)</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Shipping &amp; Delivery (₹)</label>
+                  <input type="number" id="inv-shipping" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Extra Discount (₹)</label>
+                  <input type="number" id="inv-discount" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Payment Method</label>
+                  <select id="inv-payment-method" class="form-select form-select-sm form-control-custom">
+                    <option value="UPI">UPI / GooglePay / PhonePe</option>
+                    <option value="RAZORPAY">Razorpay Online</option>
+                    <option value="COD">Cash on Delivery (COD)</option>
+                    <option value="CASH">Direct Cash</option>
+                    <option value="BANK_TRANSFER">Bank NEFT / RTGS</option>
+                    <option value="MARKETPLACE">Amazon / Flipkart Settlement</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label small fw-semibold text-dark mb-1">Payment Status</label>
+                  <select id="inv-payment-status" class="form-select form-select-sm form-control-custom">
+                    <option value="PAID">Paid &amp; Received</option>
+                    <option value="PENDING">Pending / Awaiting</option>
+                    <option value="COD">COD Collectable</option>
+                    <option value="PARTIAL">Partial Payment</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label small fw-semibold text-dark mb-1">Invoice Notes / Customer Instructions</label>
+                  <textarea id="inv-notes" class="form-control form-control-sm form-control-custom" rows="2" placeholder="Thank you for trusting XORONIQ Car Care. Lab-certified automotive care products."></textarea>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+                <button type="button" class="btn btn-x-primary btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1" id="save-as-order-btn">
+                  <i class="bi bi-cloud-arrow-up-fill"></i> Save as System Order
+                </button>
+                <button type="button" class="btn btn-x-outline btn-sm flex-grow-1 d-flex align-items-center justify-content-center gap-1" id="download-json-btn">
+                  <i class="bi bi-filetype-json"></i> Export JSON
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RIGHT: High-Definition Live Preview & Print Sheet -->
+          <div class="preview-col">
+            <div class="preview-sticky-wrap">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="small text-muted-custom fw-semibold">
+                  <i class="bi bi-eye-fill text-accent me-1"></i> LIVE A4 TAX INVOICE PREVIEW
+                </span>
+                <button type="button" class="btn btn-x-primary btn-sm" id="btn-print-preview">
+                  <i class="bi bi-printer-fill me-1"></i> Print / Save PDF
+                </button>
+              </div>
+
+              <div id="printable-gst-invoice" class="gst-invoice-sheet">
+                <!-- Live Preview Rendered by js/invoice.js -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Load From Existing Order Modal -->
+  <div class="modal fade" id="loadOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content modal-content-custom">
+        <div class="modal-header border-secondary border-opacity-25">
+          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2">
+            <i class="bi bi-receipt text-accent fs-4"></i> SELECT EXISTING ORDER TO INVOICE
+          </h5>
+          <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="input-group mb-3">
+            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+            <input type="text" id="order-search-in-modal" class="form-control form-control-custom" placeholder="Search by Order ID, customer name or phone...">
+          </div>
+          <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <table class="table-custom-dark w-100">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Source</th>
+                  <th>Customer</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="existing-orders-modal-tbody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary border-opacity-25">
+          <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="./js/main.js"></script>
+  <script type="module">
+    import { requireAdminAuth, initAdminLogout } from './js/auth.js';
+    import { initInvoiceStudio } from './js/invoice.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      requireAdminAuth();
+      initAdminLogout();
+      initInvoiceStudio();
+
+      const toggleBtn = document.getElementById('toggle-sidebar-btn');
+      const sidebar = document.getElementById('adminSidebar');
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+          sidebar.classList.toggle('show');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+/* ==========================================================================
+   XORONIQ CAR CARE - ADMIN DASHBOARD (WHITE LUXURY EDITION)
+   ========================================================================== */
+
+.admin-body {
+  background-color: #f8fafc;
+  color: var(--x-text-body);
+  font-family: var(--x-font-body);
+  min-height: 100vh;
+}
+
+/* Admin Layout Grid */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Admin Sidebar */
+.admin-sidebar {
+  width: 260px;
+  background: #ffffff;
+  border-right: 1px solid var(--x-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  transition: var(--x-transition);
+  box-shadow: var(--x-shadow-subtle);
+}
+
+.admin-sidebar-brand {
+  padding: 1.75rem 1.5rem;
+  border-bottom: 1px solid var(--x-border);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+}
+
+.admin-sidebar-nav {
+  list-style: none;
+  padding: 1.5rem 1rem;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.admin-nav-item a {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.75rem 1rem;
+  color: var(--x-text-body);
+  text-decoration: none;
+  border-radius: var(--x-radius-sm);
+  font-family: var(--x-font-heading);
+  font-weight: 600;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  transition: var(--x-transition);
+}
+
+.admin-nav-item a i {
+  font-size: 1.1rem;
+  color: var(--x-text-muted);
+  transition: var(--x-transition);
+}
+
+.admin-nav-item a:hover {
+  background: var(--x-bg-alt);
+  color: var(--x-black);
+}
+
+.admin-nav-item a:hover i {
+  color: var(--x-black);
+}
+
+.admin-nav-item.active a {
+  background: var(--x-black);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(9, 13, 22, 0.15);
+}
+
+.admin-nav-item.active a i {
+  color: #ffffff;
+}
+
+.admin-sidebar-footer {
+  padding: 1.25rem;
+  border-top: 1px solid var(--x-border);
+}
+
+/* Admin Main Content */
+.admin-main {
+  flex-grow: 1;
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+
+.admin-topbar {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--x-border);
+  padding: 1.1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.admin-content-wrap {
+  padding: 1.5rem 2rem;
+  flex-grow: 1;
+}
+
+/* Dashboard Metric Cards */
+.metric-card {
+  background: #ffffff;
+  border: 1px solid var(--x-border);
+  border-radius: var(--x-radius);
+  padding: 1.75rem;
+  transition: var(--x-transition);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--x-shadow-card);
+}
+
+.metric-card:hover {
+  border-color: var(--x-border-accent);
+  transform: translateY(-4px);
+  box-shadow: var(--x-shadow-hover);
+}
+
+.metric-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--x-radius-sm);
+  background: var(--x-accent-light);
+  border: 1px solid rgba(2, 132, 199, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--x-accent);
+  font-size: 1.35rem;
+  margin-bottom: 1rem;
+}
+
+.metric-value {
+  font-family: var(--x-font-heading);
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--x-text-main);
+  line-height: 1.1;
+  margin-bottom: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--x-text-muted);
+  margin: 0;
+}
+
+/* Admin Tables & Cards */
+.admin-card {
+  background: #ffffff;
+  border: 1px solid var(--x-border);
+  border-radius: var(--x-radius);
+  box-shadow: var(--x-shadow-card);
+}
+
+.admin-card .table-responsive {
+  border-radius: var(--x-radius);
+}
+
+.admin-card-header {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid var(--x-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+}
+
+.table-custom-dark {
+  width: 100%;
+  margin: 0;
+  color: var(--x-text-body);
+  border-collapse: separate !important;
+  border-spacing: 0;
+}
+
+.table-custom-dark th {
+  background: var(--x-bg-alt);
+  color: var(--x-text-main);
+  font-family: var(--x-font-heading);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--x-border);
+  white-space: nowrap;
+}
+
+.table-custom-dark td {
+  padding: 0.65rem 0.75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--x-border);
+  font-size: 0.82rem;
+  background: #ffffff;
+}
+
+.table-custom-dark tr:hover td {
+  background: #f8fafc;
+}
+
+/* Sticky Actions Column - Always visible on screen */
+.table-custom-dark th.th-actions,
+.table-custom-dark td.actions-cell {
+  position: sticky !important;
+  right: 0 !important;
+  background: #ffffff !important;
+  z-index: 10 !important;
+  box-shadow: -6px 0 10px rgba(0, 0, 0, 0.08) !important;
+  border-left: 1px solid var(--x-border);
+  min-width: 220px;
+  text-align: right;
+}
+
+.table-custom-dark th.th-actions {
+  background: var(--x-bg-alt) !important;
+  z-index: 11 !important;
+}
+
+.table-custom-dark tr:hover td.actions-cell {
+  background: #f1f5f9 !important;
+}
+
+.delete-single-order-btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.delete-single-order-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.25) !important;
+}
+
+/* Status Badges */
+.badge-status {
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--x-radius-pill);
+  font-family: var(--x-font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.badge-status.status-paid,
+.badge-status.status-delivered,
+.badge-status.status-active {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-status.status-pending,
+.badge-status.status-processing {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.badge-status.status-shipped {
+  background: var(--x-accent-light);
+  color: var(--x-accent);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+.badge-status.status-cancelled,
+.badge-status.status-inactive {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Upload */
+.upload-preview-img {
+  max-width: 180px;
+  max-height: 180px;
+  object-fit: contain;
+  border-radius: var(--x-radius-sm);
+  background: #ffffff;
+  padding: 0.5rem;
+  border: 1px solid var(--x-border);
+  box-shadow: var(--x-shadow-subtle);
+}
+
+/* Switch */
+.form-check-input-custom {
+  cursor: pointer;
+  background-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.form-check-input-custom:checked {
+  background-color: var(--x-accent);
+  border-color: var(--x-accent);
+}
+
+@media (max-width: 991.98px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .admin-sidebar.show {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0;
+  }
+
+  .admin-content-wrap {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* Quick Order Stat Chips */
+.order-stat-chip {
+  background: #ffffff;
+  border: 1px solid var(--x-border);
+  border-radius: var(--x-radius-md);
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.order-stat-chip:hover {
+  transform: translateY(-2px);
+  border-color: var(--x-accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.order-stat-chip.active {
+  border-color: var(--x-accent);
+  background: var(--x-accent-light);
+}
+
+.order-stat-chip .chip-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* Bulk Actions Toolbar */
+.bulk-actions-toolbar {
+  background: #090d16;
+  color: #ffffff;
+  border-radius: var(--x-radius-md);
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  animation: fadeIn 0.25s ease;
+  box-shadow: 0 10px 25px rgba(9, 13, 22, 0.2);
+}
+
+/* Action Icon Buttons */
+.btn-action-icon {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--x-radius-sm);
+  transition: all 0.15s ease;
+}
+
+/* WhatsApp concierge button */
+.btn-whatsapp-action {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.btn-whatsapp-action:hover {
+  color: #ffffff;
+  background-color: #16a34a;
+  border-color: #16a34a;
+}
+
+/* Printable Packing Slip / Invoice Styles */
+.invoice-print-sheet {
+  background: #ffffff;
+  color: #1e293b;
+  padding: 2.5rem;
+  font-family: var(--x-font-body);
+}
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .admin-sidebar,
+  .admin-topbar,
+  .admin-sidebar-footer,
+  .editor-controls-col,
+  .no-print,
+  .modal-backdrop,
+  .modal-header,
+  .modal-footer,
+  #toggle-sidebar-btn,
+  button,
+  .btn {
+    display: none !important;
+  }
+  .admin-main {
+    margin-left: 0 !important;
+    min-height: auto !important;
+    background: #ffffff !important;
+  }
+  #printable-invoice-wrapper,
+  #printable-gst-invoice {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    visibility: visible !important;
+  }
+  #printable-invoice-wrapper *,
+  #printable-gst-invoice * {
+    visibility: visible !important;
+  }
+}
+
