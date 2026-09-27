@@ -13,7 +13,8 @@ import {
   updateOrderTracking, 
   deleteOrder, 
   deleteMultipleOrders,
-  updateOrderAdminNote
+  updateOrderAdminNote,
+  getProducts
 } from './firebase.js';
 
 import { 
@@ -1846,49 +1847,365 @@ export async function initAdminOrdersPage() {
   }
 
   // ------------------------------------------------------------------------
-  // External Order Creation (WhatsApp, Amazon, Phone, In-Store, etc.)
+  // ------------------------------------------------------------------------
+  // External Order Creation with Interactive Product Catalog
   // ------------------------------------------------------------------------
   function initExternalOrderModal() {
     const form = document.getElementById('external-order-form');
     const modalEl = document.getElementById('newOrderModal');
-    const productPicker = document.getElementById('modal-product-picker');
     const itemsListContainer = document.getElementById('modal-order-items-list');
+    const itemsCountBadge = document.getElementById('order-items-count-badge');
+    const itemsSubtotalDisplay = document.getElementById('order-items-subtotal-display');
     const shippingInput = document.getElementById('modal-order-shipping');
     const discountInput = document.getElementById('modal-order-discount');
     const totalDisplay = document.getElementById('modal-order-total-display');
     const saveAndInvoiceBtn = document.getElementById('save-and-invoice-btn');
 
-    const PRESETS = {
-      'xoroniq-essential-kit': { name: 'XORONIQ Essential Kit', price: 1199, sku: 'XOR-KIT-001', hsn: '34029099' },
-      'shampoo-473ml': { name: 'Ultra Foam Car Shampoo 473ml', price: 449, sku: 'XOR-SHMP-473', hsn: '34029099' },
-      'towel-1200gsm': { name: '1200 GSM Heavy Plush Towel', price: 399, sku: 'XOR-TWL-1200', hsn: '63071010' },
-      'towel-350gsm': { name: '350 GSM Buffing Towel', price: 199, sku: 'XOR-TWL-350', hsn: '63071010' },
-      'wash-mitt': { name: 'Premium Wash Mitt', price: 249, sku: 'XOR-MITT-01', hsn: '63079090' },
-      'foam-sprayer': { name: 'Pump Foam Sprayer 2L', price: 499, sku: 'XOR-SPRY-2L', hsn: '84248990' }
-    };
+    // Catalog DOM Elements
+    const catalogGrid = document.getElementById('order-catalog-grid');
+    const catalogCountBadge = document.getElementById('order-catalog-count-badge');
+    const catalogSearchInput = document.getElementById('order-catalog-search-input');
+    const categoryPillsContainer = document.getElementById('order-catalog-category-pills');
+    const catalogRefreshBtn = document.getElementById('order-catalog-refresh-btn');
+    const addCustomBtn = document.getElementById('add-custom-product-btn');
 
-    let extItems = [{ ...PRESETS['xoroniq-essential-kit'], quantity: 1, id: 'ext_' + Date.now() }];
+    const BASE_PRESETS = [
+      {
+        id: 'xoroniq-essential-kit',
+        name: 'XORONIQ Essential Kit (6-Piece Flagship Arsenal)',
+        category: 'KITS',
+        categories: ['KITS', 'CAR CARE', 'BIKE CARE'],
+        price: 1199,
+        compareAtPrice: 1499,
+        sku: 'XOR-KIT-001',
+        stock: 50,
+        image: 'images/product/essentials.png',
+        hsn: '34029099'
+      },
+      {
+        id: 'shampoo-473ml',
+        name: 'Ultra Foam Car Shampoo 473ml',
+        category: 'CAR CARE',
+        categories: ['CAR CARE'],
+        price: 449,
+        compareAtPrice: 599,
+        sku: 'XOR-SHMP-473',
+        stock: 120,
+        image: 'images/product/essentials.png',
+        hsn: '34029099'
+      },
+      {
+        id: 'towel-1200gsm',
+        name: '1200 GSM Heavy Plush Drying Towel',
+        category: 'ACCESSORIES',
+        categories: ['ACCESSORIES', 'CAR CARE'],
+        price: 399,
+        compareAtPrice: 499,
+        sku: 'XOR-TWL-1200',
+        stock: 85,
+        image: 'images/product/essentials.png',
+        hsn: '63071010'
+      },
+      {
+        id: 'towel-350gsm',
+        name: '350 GSM Buffing Towel',
+        category: 'ACCESSORIES',
+        categories: ['ACCESSORIES', 'CAR CARE'],
+        price: 199,
+        compareAtPrice: 299,
+        sku: 'XOR-TWL-350',
+        stock: 150,
+        image: 'images/product/essentials.png',
+        hsn: '63071010'
+      },
+      {
+        id: 'wash-mitt',
+        name: 'Premium Detailing Wash Mitt',
+        category: 'ACCESSORIES',
+        categories: ['ACCESSORIES', 'CAR CARE'],
+        price: 249,
+        compareAtPrice: 349,
+        sku: 'XOR-MITT-01',
+        stock: 60,
+        image: 'images/product/essentials.png',
+        hsn: '63079090'
+      },
+      {
+        id: 'foam-sprayer',
+        name: 'Pump Foam Sprayer 2L',
+        category: 'ACCESSORIES',
+        categories: ['ACCESSORIES', 'CAR CARE'],
+        price: 499,
+        compareAtPrice: 699,
+        sku: 'XOR-SPRY-2L',
+        stock: 45,
+        image: 'images/product/essentials.png',
+        hsn: '84248990'
+      },
+      {
+        id: 'brushes-2pack',
+        name: 'Precision Detailing Brushes (2x Pack)',
+        category: 'ACCESSORIES',
+        categories: ['ACCESSORIES'],
+        price: 199,
+        compareAtPrice: 299,
+        sku: 'XOR-BRSH-2PK',
+        stock: 75,
+        image: 'images/product/essentials.png',
+        hsn: '96039000'
+      }
+    ];
+
+    let liveCatalog = [...BASE_PRESETS];
+    let selectedCategory = 'ALL';
+    let searchQuery = '';
+
+    // Initial state with 1 Essential Kit in order
+    let extItems = [{
+      id: 'item_' + Date.now(),
+      productId: 'xoroniq-essential-kit',
+      name: 'XORONIQ Essential Kit (6-Piece Flagship Arsenal)',
+      price: 1199,
+      quantity: 1,
+      sku: 'XOR-KIT-001',
+      hsn: '34029099',
+      image: 'images/product/essentials.png'
+    }];
+
+    async function loadCatalog() {
+      if (catalogCountBadge) {
+        catalogCountBadge.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> Syncing...`;
+      }
+      try {
+        const fetchedProds = await getProducts({ activeOnly: false });
+        if (Array.isArray(fetchedProds) && fetchedProds.length > 0) {
+          const map = new Map();
+          // Add default presets first
+          BASE_PRESETS.forEach(p => map.set(p.id, p));
+          // Overlay fetched products from Firestore / localStorage
+          fetchedProds.forEach(p => {
+            const id = p.id || p.slug;
+            map.set(id, {
+              id: id,
+              name: p.name,
+              category: p.category || (Array.isArray(p.categories) ? p.categories[0] : 'GENERAL'),
+              categories: p.categories || [p.category || 'GENERAL'],
+              price: Number(p.price) || 0,
+              compareAtPrice: Number(p.compareAtPrice) || 0,
+              sku: p.sku || 'XOR-PROD',
+              stock: Number(p.stock) !== undefined ? Number(p.stock) : 50,
+              image: (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : (p.image || 'images/product/essentials.png')),
+              hsn: p.hsn || '34029099'
+            });
+          });
+          liveCatalog = Array.from(map.values());
+        }
+      } catch (err) {
+        console.warn('Catalog fetch note (using base presets):', err);
+      }
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      if (!catalogGrid) return;
+
+      const q = searchQuery.toLowerCase().trim();
+      const filtered = liveCatalog.filter(prod => {
+        // Category filter
+        if (selectedCategory !== 'ALL') {
+          const catStr = (prod.category || '') + ' ' + (Array.isArray(prod.categories) ? prod.categories.join(' ') : '');
+          if (!catStr.toUpperCase().includes(selectedCategory.toUpperCase())) {
+            return false;
+          }
+        }
+        // Search filter
+        if (q) {
+          const matchName = (prod.name || '').toLowerCase().includes(q);
+          const matchSku = (prod.sku || '').toLowerCase().includes(q);
+          const matchCat = (prod.category || '').toLowerCase().includes(q);
+          return matchName || matchSku || matchCat;
+        }
+        return true;
+      });
+
+      if (catalogCountBadge) {
+        catalogCountBadge.textContent = `${filtered.length} of ${liveCatalog.length} Products`;
+      }
+
+      if (filtered.length === 0) {
+        catalogGrid.innerHTML = `
+          <div class="text-center py-4 text-muted-custom bg-light rounded border">
+            <i class="bi bi-search fs-4 d-block mb-1"></i>
+            <div class="small fw-semibold text-dark">No products found matching "${searchQuery}"</div>
+            <div style="font-size: 0.72rem;">Try another keyword or select "All" category</div>
+          </div>
+        `;
+        return;
+      }
+
+      catalogGrid.innerHTML = filtered.map(prod => {
+        const itemInOrder = extItems.find(it => it.productId === prod.id || (it.sku && it.sku === prod.sku));
+        const isSelected = Boolean(itemInOrder);
+        const qty = itemInOrder ? itemInOrder.quantity : 0;
+        const imgUrl = prod.image || 'images/product/essentials.png';
+
+        return `
+          <div class="order-catalog-card ${isSelected ? 'is-selected' : ''} d-flex align-items-center justify-content-between gap-2" data-prod-id="${prod.id}">
+            <div class="d-flex align-items-center gap-2 flex-grow-1 overflow-hidden catalog-card-info" style="cursor: pointer;" data-prod-id="${prod.id}">
+              <img src="${imgUrl}" alt="${prod.name}" class="order-catalog-thumb" onerror="this.src='images/logo/logo.PNG'">
+              <div class="overflow-hidden">
+                <div class="fw-bold text-dark text-truncate small" title="${prod.name}">${prod.name}</div>
+                <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.72rem;">
+                  <span class="badge bg-light text-dark border py-0 px-1 font-mono">${prod.sku || 'SKU'}</span>
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary py-0 px-1">${prod.category || 'CAT'}</span>
+                  ${prod.stock > 0 ? `<span class="text-success"><i class="bi bi-check-circle-fill"></i> ${prod.stock} in stock</span>` : `<span class="text-secondary"><i class="bi bi-circle"></i> Available</span>`}
+                </div>
+                <div class="mt-1 font-mono d-flex align-items-center gap-2">
+                  <span class="text-accent fw-bold small">${formatCurrency(prod.price)}</span>
+                  ${prod.compareAtPrice > prod.price ? `<span class="text-muted text-decoration-line-through small" style="font-size: 0.7rem;">${formatCurrency(prod.compareAtPrice)}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-1 flex-shrink-0">
+              ${isSelected ? `
+                <div class="input-group input-group-sm" style="width: 100px;">
+                  <button type="button" class="btn btn-outline-secondary py-0 px-2 catalog-card-minus" data-prod-id="${prod.id}" title="Decrease quantity">-</button>
+                  <input type="text" class="form-control text-center font-mono py-0 px-1 bg-light fw-bold text-dark" value="${qty}" readonly style="font-size: 0.8rem;">
+                  <button type="button" class="btn btn-dark py-0 px-2 catalog-card-plus" data-prod-id="${prod.id}" title="Increase quantity">+</button>
+                </div>
+              ` : `
+                <button type="button" class="btn btn-x-outline btn-sm py-1 px-3 catalog-card-add" data-prod-id="${prod.id}">
+                  <i class="bi bi-plus-lg me-1"></i> Add
+                </button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click listeners to cards and buttons
+      catalogGrid.querySelectorAll('.catalog-card-info, .catalog-card-add').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (e.target.closest('.catalog-card-minus') || e.target.closest('.catalog-card-plus')) return;
+          const prodId = el.getAttribute('data-prod-id');
+          addProductToOrder(prodId);
+        });
+      });
+
+      catalogGrid.querySelectorAll('.catalog-card-plus').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const prodId = btn.getAttribute('data-prod-id');
+          adjustQuantity(prodId, 1);
+        });
+      });
+
+      catalogGrid.querySelectorAll('.catalog-card-minus').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const prodId = btn.getAttribute('data-prod-id');
+          adjustQuantity(prodId, -1);
+        });
+      });
+    }
+
+    function addProductToOrder(prodId) {
+      const prod = liveCatalog.find(p => p.id === prodId);
+      if (!prod) return;
+
+      const existing = extItems.find(it => it.productId === prod.id || (it.sku && it.sku === prod.sku));
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        extItems.push({
+          id: 'item_' + Date.now(),
+          productId: prod.id,
+          name: prod.name,
+          price: prod.price,
+          quantity: 1,
+          sku: prod.sku,
+          hsn: prod.hsn || '34029099',
+          image: prod.image || 'images/product/essentials.png'
+        });
+      }
+      renderExtItems();
+      renderCatalog();
+      calcTotals();
+    }
+
+    function adjustQuantity(prodId, delta) {
+      const item = extItems.find(it => it.productId === prodId);
+      if (!item) return;
+
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        extItems = extItems.filter(it => it !== item);
+      }
+      renderExtItems();
+      renderCatalog();
+      calcTotals();
+    }
 
     function renderExtItems() {
       if (!itemsListContainer) return;
+
+      const totalItemCount = extItems.reduce((acc, it) => acc + it.quantity, 0);
+      if (itemsCountBadge) {
+        itemsCountBadge.textContent = `${extItems.length} Product${extItems.length === 1 ? '' : 's'} (${totalItemCount} Units)`;
+      }
+
+      if (extItems.length === 0) {
+        itemsListContainer.innerHTML = `
+          <div class="text-center py-4 text-muted-custom bg-white rounded border">
+            <i class="bi bi-cart-x fs-4 d-block mb-1 text-muted"></i>
+            <div class="small fw-semibold text-dark">No products added to order yet</div>
+            <div style="font-size: 0.72rem;">Click <strong>+ Add</strong> on any item in the catalog above to add it.</div>
+          </div>
+        `;
+        calcTotals();
+        return;
+      }
+
       itemsListContainer.innerHTML = extItems.map(item => `
-        <div class="d-flex align-items-center justify-content-between p-2 mb-1 bg-white rounded border ext-item-row" data-id="${item.id}">
-          <div class="flex-grow-1 me-2">
-            <input type="text" class="form-control form-control-sm ext-item-name" value="${item.name}">
+        <div class="ext-item-row-card d-flex flex-wrap align-items-center justify-content-between gap-2" data-id="${item.id}">
+          <div class="d-flex align-items-center gap-2 flex-grow-1" style="min-width: 170px;">
+            <img src="${item.image || 'images/product/essentials.png'}" alt="${item.name}" class="rounded border" style="width: 36px; height: 36px; object-fit: contain; background: #fff;" onerror="this.src='images/logo/logo.PNG'">
+            <div class="flex-grow-1 overflow-hidden">
+              <input type="text" class="form-control form-control-sm ext-item-name py-1 px-1 border-0 bg-transparent fw-semibold text-dark p-0" value="${item.name}" title="Edit product name if needed">
+              <div class="text-muted font-mono" style="font-size: 0.7rem;">${item.sku || 'XOR-PROD'}</div>
+            </div>
           </div>
-          <div style="width: 70px;" class="me-2">
-            <input type="number" class="form-control form-control-sm font-mono ext-item-qty" value="${item.quantity}" min="1" title="Quantity">
+
+          <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <!-- Quantity Stepper -->
+            <div class="input-group input-group-sm" style="width: 85px;">
+              <button type="button" class="btn btn-outline-secondary py-0 px-2 item-row-minus">-</button>
+              <input type="number" class="form-control text-center font-mono py-0 px-1 ext-item-qty" value="${item.quantity}" min="1">
+              <button type="button" class="btn btn-outline-secondary py-0 px-2 item-row-plus">+</button>
+            </div>
+
+            <!-- Price Input -->
+            <div class="input-group input-group-sm" style="width: 95px;">
+              <span class="input-group-text py-0 px-1 bg-light text-muted font-mono" style="font-size: 0.72rem;">₹</span>
+              <input type="number" class="form-control font-mono py-0 px-1 ext-item-price" value="${item.price}" min="0" title="Unit Price">
+            </div>
+
+            <!-- Row Subtotal -->
+            <div style="min-width: 70px;" class="text-end font-mono fw-bold text-accent small">
+              ${formatCurrency(item.price * item.quantity)}
+            </div>
+
+            <!-- Remove Button -->
+            <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2 ext-item-remove" title="Remove Item">
+              <i class="bi bi-trash3"></i>
+            </button>
           </div>
-          <div style="width: 90px;" class="me-2">
-            <input type="number" class="form-control form-control-sm font-mono ext-item-price" value="${item.price}" min="0" title="Price">
-          </div>
-          <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2 ext-item-remove" title="Remove Item">
-            <i class="bi bi-x-lg"></i>
-          </button>
         </div>
       `).join('');
 
-      itemsListContainer.querySelectorAll('.ext-item-row').forEach(row => {
+      // Attach row event listeners
+      itemsListContainer.querySelectorAll('.ext-item-row-card').forEach(row => {
         const id = row.getAttribute('data-id');
         const item = extItems.find(i => i.id === id);
         if (!item) return;
@@ -1896,20 +2213,41 @@ export async function initAdminOrdersPage() {
         row.querySelector('.ext-item-name').addEventListener('input', (e) => {
           item.name = e.target.value;
         });
-        row.querySelector('.ext-item-qty').addEventListener('input', (e) => {
+
+        const qtyInput = row.querySelector('.ext-item-qty');
+        qtyInput.addEventListener('input', (e) => {
           item.quantity = Math.max(1, Number(e.target.value) || 1);
+          renderExtItems();
+          renderCatalog();
           calcTotals();
         });
+
+        row.querySelector('.item-row-plus').addEventListener('click', () => {
+          item.quantity += 1;
+          renderExtItems();
+          renderCatalog();
+          calcTotals();
+        });
+
+        row.querySelector('.item-row-minus').addEventListener('click', () => {
+          item.quantity -= 1;
+          if (item.quantity <= 0) {
+            extItems = extItems.filter(i => i.id !== id);
+          }
+          renderExtItems();
+          renderCatalog();
+          calcTotals();
+        });
+
         row.querySelector('.ext-item-price').addEventListener('input', (e) => {
           item.price = Math.max(0, Number(e.target.value) || 0);
           calcTotals();
         });
+
         row.querySelector('.ext-item-remove').addEventListener('click', () => {
           extItems = extItems.filter(i => i.id !== id);
-          if (extItems.length === 0) {
-            extItems = [{ ...PRESETS['xoroniq-essential-kit'], quantity: 1, id: 'ext_' + Date.now() }];
-          }
           renderExtItems();
+          renderCatalog();
           calcTotals();
         });
       });
@@ -1923,6 +2261,7 @@ export async function initAdminOrdersPage() {
       const discount = Math.max(0, Number(discountInput?.value) || 0);
       const grandTotal = Math.max(0, subtotal + shipping - discount);
 
+      if (itemsSubtotalDisplay) itemsSubtotalDisplay.textContent = formatCurrency(subtotal);
       if (totalDisplay) totalDisplay.textContent = formatCurrency(grandTotal);
       return { subtotal, shipping, discount, grandTotal };
     }
@@ -1930,21 +2269,58 @@ export async function initAdminOrdersPage() {
     if (shippingInput) shippingInput.addEventListener('input', calcTotals);
     if (discountInput) discountInput.addEventListener('input', calcTotals);
 
-    if (productPicker) {
-      productPicker.addEventListener('change', () => {
-        const val = productPicker.value;
-        if (!val) return;
-        if (val === 'custom') {
-          extItems.push({ name: 'Custom Product / Service', price: 500, sku: 'XOR-CUSTOM', hsn: '34029099', quantity: 1, id: 'ext_' + Date.now() });
-        } else if (PRESETS[val]) {
-          extItems.push({ ...PRESETS[val], quantity: 1, id: 'ext_' + Date.now() });
-        }
-        productPicker.value = '';
-        renderExtItems();
+    if (catalogSearchInput) {
+      catalogSearchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        renderCatalog();
       });
     }
 
+    if (categoryPillsContainer) {
+      categoryPillsContainer.querySelectorAll('.catalog-filter-pill').forEach(pill => {
+        pill.addEventListener('click', () => {
+          categoryPillsContainer.querySelectorAll('.catalog-filter-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          selectedCategory = pill.getAttribute('data-cat') || 'ALL';
+          renderCatalog();
+        });
+      });
+    }
+
+    if (catalogRefreshBtn) {
+      catalogRefreshBtn.addEventListener('click', () => {
+        loadCatalog();
+        showToast('Product catalog refreshed!', 'info');
+      });
+    }
+
+    if (addCustomBtn) {
+      addCustomBtn.addEventListener('click', () => {
+        extItems.push({
+          id: 'item_' + Date.now(),
+          productId: 'custom_' + Date.now(),
+          name: 'Custom Product / Detailing Package',
+          price: 500,
+          quantity: 1,
+          sku: 'XOR-CUSTOM',
+          hsn: '34029099',
+          image: 'images/logo/logo.PNG'
+        });
+        renderExtItems();
+        calcTotals();
+        showToast('Custom item added to order list.', 'info');
+      });
+    }
+
+    if (modalEl) {
+      modalEl.addEventListener('show.bs.modal', () => {
+        loadCatalog();
+      });
+    }
+
+    // Initial load
     renderExtItems();
+    loadCatalog();
 
     async function handleSaveOrder(openInvoice = false) {
       const name = document.getElementById('modal-cust-name')?.value?.trim();
@@ -1956,6 +2332,11 @@ export async function initAdminOrdersPage() {
 
       if (!name || !phone || !address || !pincode) {
         showToast('Please fill out customer name, phone, address and pincode.', 'warning');
+        return;
+      }
+
+      if (extItems.length === 0) {
+        showToast('Please select at least one product from the catalog.', 'warning');
         return;
       }
 
@@ -1989,7 +2370,8 @@ export async function initAdminOrdersPage() {
             hsn: it.hsn || '34029099',
             price: it.price,
             quantity: it.quantity,
-            total: it.price * it.quantity
+            total: it.price * it.quantity,
+            image: it.image || 'images/product/essentials.png'
           })),
           subtotal,
           shipping,
@@ -2024,8 +2406,18 @@ export async function initAdminOrdersPage() {
         }
 
         form?.reset();
-        extItems = [{ ...PRESETS['xoroniq-essential-kit'], quantity: 1, id: 'ext_' + Date.now() }];
+        extItems = [{
+          id: 'item_' + Date.now(),
+          productId: 'xoroniq-essential-kit',
+          name: 'XORONIQ Essential Kit (6-Piece Flagship Arsenal)',
+          price: 1199,
+          quantity: 1,
+          sku: 'XOR-KIT-001',
+          hsn: '34029099',
+          image: 'images/product/essentials.png'
+        }];
         renderExtItems();
+        renderCatalog();
 
         if (openInvoice) {
           window.open(`invoice.html?orderId=${encodeURIComponent(created.orderId)}`, '_blank');

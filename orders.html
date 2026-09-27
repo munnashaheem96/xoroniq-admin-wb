@@ -560,167 +560,232 @@
     </div>
   </div>
 
-  <!-- Create External / Multi-Channel Order Modal -->
+  <!-- Create External / Multi-Channel Order Modal with Live Product Catalog -->
   <div class="modal fade" id="newOrderModal" tabindex="-1" aria-labelledby="newOrderModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
       <div class="modal-content modal-content-custom">
-        <div class="modal-header border-secondary border-opacity-25">
-          <h5 class="modal-title font-heading text-black fw-bold d-flex align-items-center gap-2" id="newOrderModalLabel">
-            <i class="bi bi-plus-circle-fill text-accent fs-4"></i> RECORD ORDER FROM EXTERNAL SOURCE
-          </h5>
+        <div class="modal-header border-secondary border-opacity-25 bg-light py-3">
+          <div class="d-flex align-items-center gap-2">
+            <div class="chip-icon bg-black text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+              <i class="bi bi-cart-plus-fill fs-5"></i>
+            </div>
+            <div>
+              <h5 class="modal-title font-heading text-black fw-bold mb-0" id="newOrderModalLabel">CREATE NEW ORDER</h5>
+              <div class="text-muted-custom small">Browse live product catalog, select items, and record order from any channel</div>
+            </div>
+          </div>
           <button type="button" class="btn-close-custom" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i></button>
         </div>
-        <div class="modal-body p-4">
+        <div class="modal-body p-3 p-lg-4">
           <form id="external-order-form">
-            <!-- Channel & Reference -->
-            <div class="p-3 bg-light rounded border mb-3">
-              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">1. SALES CHANNEL &amp; REFERENCE</div>
-              <div class="row g-2">
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Order Source *</label>
-                  <select id="modal-order-source" class="form-select form-select-sm form-control-custom" required>
-                    <option value="WhatsApp" selected>WhatsApp Concierge</option>
-                    <option value="Phone / Manual">Phone / Manual Order</option>
-                    <option value="In-Store">In-Store / Direct Walk-in</option>
-                    <option value="Amazon">Amazon Marketplace</option>
-                    <option value="Flipkart">Flipkart</option>
-                    <option value="Instagram">Instagram Concierge</option>
-                    <option value="B2B">B2B / Wholesale Dealer</option>
-                    <option value="Website">Website</option>
-                  </select>
+            <div class="row g-3">
+              <!-- Left Column: Channel, Customer & Totals -->
+              <div class="col-12 col-lg-5 col-xl-5">
+                <!-- 1. Channel & Reference -->
+                <div class="p-3 bg-light rounded border mb-3">
+                  <div class="fw-bold font-heading text-dark small mb-2 text-uppercase d-flex align-items-center gap-1">
+                    <i class="bi bi-shop text-accent"></i> 1. SALES CHANNEL &amp; REFERENCE
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Order Source *</label>
+                      <select id="modal-order-source" class="form-select form-select-sm form-control-custom" required>
+                        <option value="WhatsApp" selected>WhatsApp Concierge</option>
+                        <option value="Phone / Manual">Phone / Manual Order</option>
+                        <option value="In-Store">In-Store / Direct Walk-in</option>
+                        <option value="Amazon">Amazon Marketplace</option>
+                        <option value="Flipkart">Flipkart</option>
+                        <option value="Instagram">Instagram Concierge</option>
+                        <option value="B2B">B2B / Wholesale Dealer</option>
+                        <option value="Website">Website</option>
+                      </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">External Order / Reference ID</label>
+                      <input type="text" id="modal-external-ref" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. AMZ-402-91823 or WA-CONV-102">
+                    </div>
+                  </div>
                 </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">External Order / Reference ID</label>
-                  <input type="text" id="modal-external-ref" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. AMZ-402-91823 or WA-CONV-102">
+
+                <!-- 2. Customer Details -->
+                <div class="p-3 bg-light rounded border mb-3">
+                  <div class="fw-bold font-heading text-dark small mb-2 text-uppercase d-flex align-items-center gap-1">
+                    <i class="bi bi-person-badge text-accent"></i> 2. CUSTOMER &amp; RECIPIENT
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Customer Name *</label>
+                      <input type="text" id="modal-cust-name" class="form-control form-control-sm form-control-custom" placeholder="Full Name" required>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Phone / WhatsApp *</label>
+                      <input type="tel" id="modal-cust-phone" class="form-control form-control-sm form-control-custom font-mono" placeholder="10-digit mobile number" required>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Email Address</label>
+                      <input type="email" id="modal-cust-email" class="form-control form-control-sm form-control-custom" placeholder="customer@domain.com">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Trade / GSTIN (Optional)</label>
+                      <input type="text" id="modal-cust-gstin" class="form-control form-control-sm form-control-custom font-mono text-uppercase" placeholder="Optional">
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label small fw-semibold text-dark mb-1">Street Address *</label>
+                      <input type="text" id="modal-cust-address" class="form-control form-control-sm form-control-custom" placeholder="House / Flat / Street / Landmark" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">City *</label>
+                      <input type="text" id="modal-cust-city" class="form-control form-control-sm form-control-custom" placeholder="City" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">State *</label>
+                      <input type="text" id="modal-cust-state" class="form-control form-control-sm form-control-custom" value="Kerala" required>
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">PIN Code *</label>
+                      <input type="text" id="modal-cust-pincode" class="form-control form-control-sm form-control-custom font-mono" placeholder="676306" required>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Totals, Payment & Dispatch -->
+                <div class="p-3 bg-light rounded border mb-3">
+                  <div class="fw-bold font-heading text-dark small mb-2 text-uppercase d-flex align-items-center gap-1">
+                    <i class="bi bi-credit-card text-accent"></i> 3. TOTALS, PAYMENT &amp; DISPATCH
+                  </div>
+                  <div class="row g-2">
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">Delivery Fee (₹)</label>
+                      <input type="number" id="modal-order-shipping" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">Discount (₹)</label>
+                      <input type="number" id="modal-order-discount" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
+                    </div>
+                    <div class="col-4">
+                      <label class="form-label small fw-semibold text-dark mb-1">Grand Total</label>
+                      <div class="form-control form-control-sm bg-white font-mono fw-bold text-accent" id="modal-order-total-display">₹1,199</div>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Payment Method *</label>
+                      <select id="modal-order-payment-method" class="form-select form-select-sm form-control-custom">
+                        <option value="UPI" selected>UPI / Google Pay / PhonePe</option>
+                        <option value="COD">Cash on Delivery (COD)</option>
+                        <option value="RAZORPAY">Razorpay Online</option>
+                        <option value="CASH">Direct Cash</option>
+                        <option value="BANK_TRANSFER">Bank NEFT / RTGS</option>
+                        <option value="MARKETPLACE">Amazon / Flipkart Settlement</option>
+                      </select>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Fulfillment Status *</label>
+                      <select id="modal-order-status" class="form-select form-select-sm form-control-custom">
+                        <option value="Payment Confirmed" selected>Payment Confirmed (Ready to Pack)</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Order Placed (COD)">Order Placed (COD)</option>
+                      </select>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">Courier Partner</label>
+                      <input type="text" id="modal-order-courier" class="form-control form-control-sm form-control-custom" value="Delhivery Express">
+                    </div>
+                    <div class="col-12 col-sm-6">
+                      <label class="form-label small fw-semibold text-dark mb-1">AWB / Tracking Number (Optional)</label>
+                      <input type="text" id="modal-order-awb" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. 143829471928">
+                    </div>
+
+                    <div class="col-12">
+                      <label class="form-label small fw-semibold text-dark mb-1">Admin Internal Note</label>
+                      <input type="text" id="modal-order-note" class="form-control form-control-sm form-control-custom" placeholder="e.g. Customer ordered via WhatsApp chat. Priority shipping requested.">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 pt-2">
+                  <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
+                  <button type="submit" class="btn btn-x-primary btn-sm px-3 flex-grow-1" id="save-external-order-btn">
+                    <i class="bi bi-check2-circle me-1"></i> Save Order
+                  </button>
+                  <button type="button" class="btn btn-dark btn-sm px-3" id="save-and-invoice-btn" title="Save and immediately generate Tax Invoice">
+                    <i class="bi bi-receipt-cutoff me-1"></i> Save &amp; Invoice
+                  </button>
                 </div>
               </div>
-            </div>
 
-            <!-- Customer Details -->
-            <div class="p-3 bg-light rounded border mb-3">
-              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">2. CUSTOMER &amp; SHIPPING RECIPIENT</div>
-              <div class="row g-2">
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Customer Name *</label>
-                  <input type="text" id="modal-cust-name" class="form-control form-control-sm form-control-custom" placeholder="Full Name" required>
+              <!-- Right Column: Interactive Product Catalog & Selected Items -->
+              <div class="col-12 col-lg-7 col-xl-7">
+                <!-- Visual Product Catalog Card -->
+                <div class="p-3 bg-white rounded border shadow-sm mb-3">
+                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="chip-icon bg-primary bg-opacity-10 text-primary rounded p-1" style="width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-box-seam-fill"></i>
+                      </div>
+                      <div>
+                        <div class="fw-bold font-heading text-dark small text-uppercase mb-0">PRODUCT CATALOG</div>
+                        <div class="text-muted-custom" style="font-size: 0.72rem;">Click any item to add to this order</div>
+                      </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="badge bg-light text-dark border small" id="order-catalog-count-badge">Loading catalog...</span>
+                      <button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2" id="order-catalog-refresh-btn" title="Refresh products from database">
+                        <i class="bi bi-arrow-clockwise"></i>
+                      </button>
+                      <button type="button" class="btn btn-x-outline btn-sm py-1 px-2 text-nowrap" id="add-custom-product-btn" title="Add unlisted product or custom service item">
+                        <i class="bi bi-plus-circle me-1"></i> + Custom Item
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Catalog Search & Category Filters -->
+                  <div class="row g-2 mb-2">
+                    <div class="col-12">
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" id="order-catalog-search-input" class="form-control form-control-sm border-start-0" placeholder="Search catalog by product name, SKU, price...">
+                      </div>
+                    </div>
+                    <div class="col-12">
+                      <div class="d-flex flex-wrap gap-1 align-items-center" id="order-catalog-category-pills">
+                        <button type="button" class="catalog-filter-pill active" data-cat="ALL">All</button>
+                        <button type="button" class="catalog-filter-pill" data-cat="KITS">Kits</button>
+                        <button type="button" class="catalog-filter-pill" data-cat="CAR CARE">Car Care</button>
+                        <button type="button" class="catalog-filter-pill" data-cat="BIKE CARE">Bike Care</button>
+                        <button type="button" class="catalog-filter-pill" data-cat="ACCESSORIES">Accessories</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Catalog Cards Grid (Scrollable) -->
+                  <div id="order-catalog-grid" class="order-catalog-grid" style="max-height: 280px; overflow-y: auto; overflow-x: hidden; padding-right: 4px;">
+                    <!-- Dynamically populated product cards -->
+                  </div>
                 </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Phone / WhatsApp *</label>
-                  <input type="tel" id="modal-cust-phone" class="form-control form-control-sm form-control-custom font-mono" placeholder="10-digit mobile number" required>
-                </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Email Address</label>
-                  <input type="email" id="modal-cust-email" class="form-control form-control-sm form-control-custom" placeholder="customer@domain.com">
-                </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Customer Trade / GST ID (Optional)</label>
-                  <input type="text" id="modal-cust-gstin" class="form-control form-control-sm form-control-custom font-mono text-uppercase" placeholder="Optional">
-                </div>
-                <div class="col-12">
-                  <label class="form-label small fw-semibold text-dark mb-1">Street Address *</label>
-                  <input type="text" id="modal-cust-address" class="form-control form-control-sm form-control-custom" placeholder="House / Flat / Street / Landmark" required>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">City *</label>
-                  <input type="text" id="modal-cust-city" class="form-control form-control-sm form-control-custom" placeholder="City" required>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">State *</label>
-                  <input type="text" id="modal-cust-state" class="form-control form-control-sm form-control-custom" value="Kerala" required>
-                </div>
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">PIN Code *</label>
-                  <input type="text" id="modal-cust-pincode" class="form-control form-control-sm form-control-custom font-mono" placeholder="676306" required>
+
+                <!-- Selected Order Line Items (Cart) -->
+                <div class="p-3 bg-light rounded border">
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="fw-bold font-heading text-dark small text-uppercase d-flex align-items-center gap-1">
+                      <i class="bi bi-bag-check-fill text-success"></i> ORDERED PRODUCTS LIST
+                    </div>
+                    <span class="badge bg-dark text-white font-mono" id="order-items-count-badge">1 Item</span>
+                  </div>
+
+                  <div id="modal-order-items-list" class="mb-2" style="max-height: 250px; overflow-y: auto;">
+                    <!-- Dynamically populated rows with image, name, qty, price, total, remove -->
+                  </div>
+
+                  <!-- Quick Items Total Bar -->
+                  <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-25 small">
+                    <span class="text-muted-custom">Items Subtotal:</span>
+                    <span class="font-mono fw-bold text-dark fs-6" id="order-items-subtotal-display">₹1,199</span>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <!-- Items -->
-            <div class="p-3 bg-light rounded border mb-3">
-              <div class="d-flex align-items-center justify-content-between mb-2">
-                <div class="fw-bold font-heading text-dark small text-uppercase">3. ORDERED PRODUCTS</div>
-                <div class="d-flex gap-2">
-                  <select id="modal-product-picker" class="form-select form-select-sm" style="max-width: 220px;">
-                    <option value="">+ Add Product from Catalog...</option>
-                    <option value="xoroniq-essential-kit">XORONIQ Essential Kit (₹1,199)</option>
-                    <option value="shampoo-473ml">Ultra Foam Shampoo 473ml (₹449)</option>
-                    <option value="towel-1200gsm">1200 GSM Heavy Plush Towel (₹399)</option>
-                    <option value="towel-350gsm">350 GSM Buffing Towel (₹199)</option>
-                    <option value="wash-mitt">Premium Wash Mitt (₹249)</option>
-                    <option value="foam-sprayer">Pump Foam Sprayer (₹499)</option>
-                    <option value="custom">Custom Item...</option>
-                  </select>
-                </div>
-              </div>
-
-              <div id="modal-order-items-list" class="mb-2">
-                <!-- Dynamically populated rows -->
-              </div>
-            </div>
-
-            <!-- Financials & Fulfillment -->
-            <div class="p-3 bg-light rounded border mb-3">
-              <div class="fw-bold font-heading text-dark small mb-2 text-uppercase">4. TOTALS, PAYMENT &amp; DISPATCH</div>
-              <div class="row g-2">
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">Delivery Fee (₹)</label>
-                  <input type="number" id="modal-order-shipping" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
-                </div>
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">Discount (₹)</label>
-                  <input type="number" id="modal-order-discount" class="form-control form-control-sm form-control-custom font-mono" value="0" min="0">
-                </div>
-                <div class="col-4">
-                  <label class="form-label small fw-semibold text-dark mb-1">Order Grand Total</label>
-                  <div class="form-control form-control-sm bg-white font-mono fw-bold text-accent" id="modal-order-total-display">₹1,199</div>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Payment Method *</label>
-                  <select id="modal-order-payment-method" class="form-select form-select-sm form-control-custom">
-                    <option value="UPI" selected>UPI / Google Pay / PhonePe</option>
-                    <option value="COD">Cash on Delivery (COD)</option>
-                    <option value="RAZORPAY">Razorpay Online</option>
-                    <option value="CASH">Direct Cash</option>
-                    <option value="BANK_TRANSFER">Bank NEFT / RTGS</option>
-                    <option value="MARKETPLACE">Amazon / Flipkart Settlement</option>
-                  </select>
-                </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Order Fulfillment Status *</label>
-                  <select id="modal-order-status" class="form-select form-select-sm form-control-custom">
-                    <option value="Payment Confirmed" selected>Payment Confirmed (Ready to Pack)</option>
-                    <option value="Processing">Processing</option>
-                    <option value="Shipped">Shipped</option>
-                    <option value="Delivered">Delivered</option>
-                    <option value="Order Placed (COD)">Order Placed (COD)</option>
-                  </select>
-                </div>
-
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">Courier Partner</label>
-                  <input type="text" id="modal-order-courier" class="form-control form-control-sm form-control-custom" value="Delhivery Express">
-                </div>
-                <div class="col-12 col-sm-6">
-                  <label class="form-label small fw-semibold text-dark mb-1">AWB / Tracking Number (Optional)</label>
-                  <input type="text" id="modal-order-awb" class="form-control form-control-sm form-control-custom font-mono" placeholder="e.g. 143829471928">
-                </div>
-
-                <div class="col-12">
-                  <label class="form-label small fw-semibold text-dark mb-1">Admin Internal Note</label>
-                  <input type="text" id="modal-order-note" class="form-control form-control-sm form-control-custom" placeholder="e.g. Customer ordered via WhatsApp chat. Priority shipping requested.">
-                </div>
-              </div>
-            </div>
-
-            <div class="d-flex justify-content-end gap-2">
-              <button type="button" class="btn btn-x-outline btn-sm" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-x-primary btn-sm px-3" id="save-external-order-btn">
-                <i class="bi bi-check2-circle me-1"></i> Save Order
-              </button>
-              <button type="button" class="btn btn-dark btn-sm px-3" id="save-and-invoice-btn">
-                <i class="bi bi-receipt-cutoff me-1"></i> Save &amp; Open Tax Invoice
-              </button>
             </div>
           </form>
         </div>
